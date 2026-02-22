@@ -4,4 +4,4 @@ export const notify = (message, type) => {
     toast[type](message);
 }
 
-export const API_URL = 'task-manager-using-mern-api.vercel.app';
+export const API_URL = 'https://task-manager-using-mern-api.vercel.app';
