@@ -1,10 +1,19 @@
 const TaskModel = require("../Models/TaskModel");
 
+const isValidTaskName = (value) => typeof value === 'string' && value.trim().length > 0;
+const isValidIsDone = (value) => typeof value === 'boolean';
 
 const createTask = async (req, res) => {
-    const data = req.body;
+    const data = req.body || {};
+    if (!isValidTaskName(data.taskName) || !isValidIsDone(data.isDone)) {
+        return res.status(400).json({ message: 'Invalid payload', success: false });
+    }
+
     try {
-        const model = new TaskModel(data);
+        const model = new TaskModel({
+            taskName: data.taskName.trim(),
+            isDone: data.isDone
+        });
         await model.save();
         res.status(201)
             .json({ message: 'Task is created', success: true });
@@ -27,9 +36,16 @@ const fetchAllTasks = async (req, res) => {
 const updateTaskById = async (req, res) => {
     try {
         const id = req.params.id;
-        const body = req.body;
+        const body = req.body || {};
+        if (!isValidTaskName(body.taskName) || !isValidIsDone(body.isDone)) {
+            return res.status(400).json({ message: 'Invalid payload', success: false });
+        }
+
         const obj = { $set: { ...body } };
-        await TaskModel.findByIdAndUpdate(id, obj)
+        const updatedTask = await TaskModel.findByIdAndUpdate(id, obj);
+        if (!updatedTask) {
+            return res.status(404).json({ message: 'Task not found', success: false });
+        }
         res.status(200)
             .json({ message: 'Task Updated', success: true });
     } catch (err) {
@@ -41,7 +57,10 @@ const updateTaskById = async (req, res) => {
 const deleteTaskById = async (req, res) => {
     try {
         const id = req.params.id;
-        await TaskModel.findByIdAndDelete(id);
+        const deletedTask = await TaskModel.findByIdAndDelete(id);
+        if (!deletedTask) {
+            return res.status(404).json({ message: 'Task not found', success: false });
+        }
         res.status(200)
             .json({ message: 'Task is deleted', success: true });
     } catch (err) {

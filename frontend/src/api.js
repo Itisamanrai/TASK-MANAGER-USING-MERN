@@ -1,9 +1,18 @@
 import { API_URL } from "./utils"
 
+const request = async (url, options) => {
+    const result = await fetch(url, options);
+    const data = await result.json();
+
+    if (!result.ok || !data?.success) {
+        throw new Error(data?.message || 'Request failed');
+    }
+
+    return data;
+}
 
 export const CreateTask = async (taskObj) => {
     const url = `${API_URL}/tasks`;
-    console.log('url ', url)
     const options = {
         method: 'POST',
         headers: {
@@ -11,54 +20,33 @@ export const CreateTask = async (taskObj) => {
         },
         body: JSON.stringify(taskObj)
     };
-    try {
-        const result = await fetch(url, options);
-        const data = await result.json();
-        return data;
-    } catch (err) {
-        return err;
-    }
+    return request(url, options);
 }
 export const GetAllTasks = async () => {
     const url = `${API_URL}/tasks`;
-    console.log('url ', url)
     const options = {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
         }
     };
-    try {
-        const result = await fetch(url, options);
-        const data = await result.json();
-        return data;
-    } catch (err) {
-        return err;
-    }
+    return request(url, options);
 }
 
 export const DeleteTaskById = async (id) => {
     const url = `${API_URL}/tasks/${id}`;
-    console.log('url ', url)
     const options = {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json'
         }
     };
-    try {
-        const result = await fetch(url, options);
-        const data = await result.json();
-        return data;
-    } catch (err) {
-        return err;
-    }
+    return request(url, options);
 }
 
 
 export const UpdateTaskById = async (id, reqBody) => {
     const url = `${API_URL}/tasks/${id}`;
-    console.log('url ', url)
     const options = {
         method: 'PUT',
         headers: {
@@ -66,11 +54,5 @@ export const UpdateTaskById = async (id, reqBody) => {
         },
         body: JSON.stringify(reqBody)
     };
-    try {
-        const result = await fetch(url, options);
-        const data = await result.json();
-        return data;
-    } catch (err) {
-        return err;
-    }
+    return request(url, options);
 }

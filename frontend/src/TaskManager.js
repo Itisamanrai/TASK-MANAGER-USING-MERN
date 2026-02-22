@@ -10,17 +10,17 @@ function TaskManager() {
     const [updateTask, setUpdateTask] = useState(null);
 
     const handleTask = () => {
-        if (updateTask && input) {
+        const taskName = input.trim();
+
+        if (updateTask && taskName) {
             //upadte api call
-            console.log('update api call');
             const obj = {
-                taskName: input,
+                taskName,
                 isDone: updateTask.isDone,
                 _id: updateTask._id
             }
             handleUpdateItem(obj);
-        } else if (updateTask === null && input) {
-            console.log('create api call')
+        } else if (updateTask === null && taskName) {
             //create api call
             handleAddTask();
         }
@@ -35,35 +35,30 @@ function TaskManager() {
 
     const handleAddTask = async () => {
         const obj = {
-            taskName: input,
+            taskName: input.trim(),
             isDone: false
         }
         try {
-            const { success, message } =
-                await CreateTask(obj);
-            if (success) {
-                //show success toast
-                notify(message, 'success')
-            } else {
-                //show error toast
-                notify(message, 'error')
-            }
+            const { message } = await CreateTask(obj);
+            notify(message, 'success')
             fetchAllTasks()
         } catch (err) {
             console.error(err);
-            notify('Failed to create task', 'error')
+            notify(err.message || 'Failed to create task', 'error')
         }
     }
 
     const fetchAllTasks = async () => {
         try {
-            const { data } =
-                await GetAllTasks();
-            setTasks(data);
-            setCopyTasks(data);
+            const { data } = await GetAllTasks();
+            const normalizedData = Array.isArray(data) ? data : [];
+            setTasks(normalizedData);
+            setCopyTasks(normalizedData);
         } catch (err) {
             console.error(err);
-            notify('Failed to create task', 'error')
+            setTasks([]);
+            setCopyTasks([]);
+            notify(err.message || 'Failed to fetch tasks', 'error')
         }
     }
     useEffect(() => {
@@ -73,18 +68,12 @@ function TaskManager() {
 
     const handleDeleteTask = async (id) => {
         try {
-            const { success, message } = await DeleteTaskById(id);
-            if (success) {
-                //show success toast
-                notify(message, 'success')
-            } else {
-                //show error toast
-                notify(message, 'error')
-            }
+            const { message } = await DeleteTaskById(id);
+            notify(message, 'success')
             fetchAllTasks()
         } catch (err) {
             console.error(err);
-            notify('Failed to create task', 'error')
+            notify(err.message || 'Failed to delete task', 'error')
         }
     }
 
@@ -95,18 +84,12 @@ function TaskManager() {
             isDone: !isDone
         }
         try {
-            const { success, message } = await UpdateTaskById(_id, obj);
-            if (success) {
-                //show success toast
-                notify(message, 'success')
-            } else {
-                //show error toast
-                notify(message, 'error')
-            }
+            const { message } = await UpdateTaskById(_id, obj);
+            notify(message, 'success')
             fetchAllTasks()
         } catch (err) {
             console.error(err);
-            notify('Failed to create task', 'error')
+            notify(err.message || 'Failed to update task', 'error')
         }
     }
 
@@ -117,24 +100,19 @@ function TaskManager() {
             isDone: isDone
         }
         try {
-            const { success, message } = await UpdateTaskById(_id, obj);
-            if (success) {
-                //show success toast
-                notify(message, 'success')
-            } else {
-                //show error toast
-                notify(message, 'error')
-            }
+            const { message } = await UpdateTaskById(_id, obj);
+            notify(message, 'success')
+            setUpdateTask(null);
             fetchAllTasks()
         } catch (err) {
             console.error(err);
-            notify('Failed to create task', 'error')
+            notify(err.message || 'Failed to update task', 'error')
         }
     }
 
     const handleSearch = (e) => {
         const term = e.target.value.toLowerCase();
-        const oldTasks = [...copyTasks];
+        const oldTasks = Array.isArray(copyTasks) ? copyTasks : [];
         const results = oldTasks.filter((item) => item.taskName.toLowerCase().includes(term));
         setTasks(results);
     }
@@ -179,7 +157,7 @@ function TaskManager() {
             {/* List of items */}
             <div className='d-flex flex-column w-100'>
                 {
-                    tasks.map((item) => (
+                    (Array.isArray(tasks) ? tasks : []).map((item) => (
                         <div key={item._id} className='m-2 p-2 border bg-light
                 w-100 rounded-3 d-flex justify-content-between
                 align-items-center'>
